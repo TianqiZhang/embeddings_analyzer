@@ -51,7 +51,7 @@ export function ConfigForm({ config, onChange }: ConfigFormProps) {
             value={config.deploymentName || ''}
             onChange={(e) => onChange({ ...config, deploymentName: e.target.value } as AzureConfig)}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="text-embedding-ada-002"
+            placeholder="text-embedding-3-large"
           />
         </div>
       </div>

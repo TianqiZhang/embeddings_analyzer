@@ -12,8 +12,8 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [steps, setSteps] = useState<Step[]>([
-    { id: 1, label: 'Generate full text embedding', status: 'pending' },
-    { id: 2, label: 'Generate split parts embeddings', status: 'pending' },
+    { id: 1, label: 'Get full text embedding', status: 'pending' },
+    { id: 2, label: 'Get split parts embeddings', status: 'pending' },
     { id: 3, label: 'Calculate average vector', status: 'pending' },
     { id: 4, label: 'Compute similarity score', status: 'pending' }
   ]);
