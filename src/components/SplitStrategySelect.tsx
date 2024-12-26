@@ -19,11 +19,14 @@ export function SplitStrategySelect({ value, onChange }: SplitStrategySelectProp
       >
         <option value="midpoint">Simple Midpoint</option>
         <option value="semantic">Semantic (Split at Newline)</option>
+        <option value="overlap">Overlapping (5% overlap)</option>
       </select>
       <p className="mt-2 text-sm text-gray-500">
         {value === 'midpoint' 
           ? 'Splits text exactly in half regardless of content'
-          : 'Finds the nearest newline to avoid breaking sentences'}
+          : value === 'semantic'
+          ? 'Finds the nearest newline to avoid breaking sentences'
+          : 'Creates overlapping sections for better context preservation'}
       </p>
     </div>
   );
