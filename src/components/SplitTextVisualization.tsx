@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
+import { SplitStrategy } from '../utils/textSplitting';
 
 interface SplitTextVisualizationProps {
   part1: string;
   part2: string;
+  splitStrategy: SplitStrategy;
 }
 
-export function SplitTextVisualization({ part1, part2 }: SplitTextVisualizationProps) {
+export function SplitTextVisualization({ part1, part2, splitStrategy }: SplitTextVisualizationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const splitPointRef = useRef<HTMLSpanElement>(null);
 
@@ -23,8 +25,8 @@ export function SplitTextVisualization({ part1, part2 }: SplitTextVisualizationP
     }
   }, [part1, part2]);
 
-  // Find overlapping text if it exists
-  const overlap = findOverlap(part1, part2);
+  // Find overlapping text if strategy is 'findOverlap'
+  const overlap = splitStrategy === 'overlap' ? findOverlap(part1, part2) : null;
 
   return (
     <div 
