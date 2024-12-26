@@ -80,6 +80,7 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
             onChange={setText}
             onAnalyze={handleAnalyze}
             loading={loading}
+            splitStrategy={splitStrategy}
           />
           <ErrorDisplay error={error} />
           <SimilarityResults 
