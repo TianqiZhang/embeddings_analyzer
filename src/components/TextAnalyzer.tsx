@@ -1,22 +1,36 @@
 import React, { useState } from 'react';
-import { getEmbedding, calculateCosineSimilarity, averageVectors } from '../utils/embeddings';
 import type { AzureConfig } from '../utils/config';
-import { ProgressSteps } from './ProgressSteps';
 import type { Step } from './ProgressSteps';
+import type { AnalysisResults } from '../utils/analysis';
+import type { SplitStrategy } from '../utils/textSplitting';
+import { analyzeText } from '../utils/analysis';
+import { ProgressSteps } from './ProgressSteps';
 import { TextInput } from './TextInput';
-import { ResultDisplay } from './ResultDisplay';
+import { SearchInput } from './SearchInput';
+import { SplitStrategySelect } from './SplitStrategySelect';
+import { SimilarityResults } from './SimilarityResults';
+import { ErrorDisplay } from './ErrorDisplay';
+
+const initialSteps: Step[] = [
+  { id: 1, label: 'Generate full text embedding', status: 'pending' },
+  { id: 2, label: 'Split text and generate part embeddings', status: 'pending' },
+  { id: 3, label: 'Calculate average vector', status: 'pending' },
+  { id: 4, label: 'Generate search query embedding', status: 'pending' },
+  { id: 5, label: 'Compute similarity scores', status: 'pending' }
+];
 
 export function TextAnalyzer({ config }: { config: AzureConfig }) {
   const [text, setText] = useState('');
-  const [similarity, setSimilarity] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [splitStrategy, setSplitStrategy] = useState<SplitStrategy>('midpoint');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [steps, setSteps] = useState<Step[]>([
-    { id: 1, label: 'Get full text embedding', status: 'pending' },
-    { id: 2, label: 'Get split parts embeddings', status: 'pending' },
-    { id: 3, label: 'Calculate average vector', status: 'pending' },
-    { id: 4, label: 'Compute similarity score', status: 'pending' }
-  ]);
+  const [results, setResults] = useState<AnalysisResults>({
+    fullToAverage: null,
+    queryToFull: null,
+    queryToAverage: null,
+  });
+  const [steps, setSteps] = useState<Step[]>(initialSteps);
 
   const updateStepStatus = (stepId: number, status: Step['status']) => {
     setSteps(currentSteps => currentSteps.map(step => 
@@ -25,34 +39,18 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
   };
 
   const handleAnalyze = async () => {
+    if (!text.trim()) return;
+    
     try {
       setLoading(true);
       setError(null);
       
-      // Step 1: Generate full text embedding
-      updateStepStatus(1, 'active');
-      const vectorFull = await getEmbedding(text, config);
-      updateStepStatus(1, 'completed');
+      // Reset all steps
+      steps.forEach(step => updateStepStatus(step.id, 'pending'));
+      
+      const results = await analyzeText(text, searchQuery, config, splitStrategy, updateStepStatus);
+      setResults(results);
 
-      // Step 2: Split text and generate part embeddings
-      updateStepStatus(2, 'active');
-      const midpoint = Math.floor(text.length / 2);
-      const part1 = text.slice(0, midpoint);
-      const part2 = text.slice(midpoint);
-      const vector0 = await getEmbedding(part1, config);
-      const vector1 = await getEmbedding(part2, config);
-      updateStepStatus(2, 'completed');
-
-      // Step 3: Calculate average vector
-      updateStepStatus(3, 'active');
-      const vectorAvg = averageVectors(vector0, vector1);
-      updateStepStatus(3, 'completed');
-
-      // Step 4: Compute similarity score
-      updateStepStatus(4, 'active');
-      const similarityScore = calculateCosineSimilarity(vectorFull, vectorAvg);
-      setSimilarity(similarityScore);
-      updateStepStatus(4, 'completed');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       steps.forEach(step => {
@@ -69,15 +67,24 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
     <div className="flex gap-8">
       <div className="flex-1">
         <div className="bg-white rounded-xl shadow-lg p-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+          />
+          <SplitStrategySelect
+            value={splitStrategy}
+            onChange={setSplitStrategy}
+          />
           <TextInput
             value={text}
             onChange={setText}
             onAnalyze={handleAnalyze}
             loading={loading}
           />
-          <ResultDisplay
-            similarity={similarity}
-            error={error}
+          <ErrorDisplay error={error} />
+          <SimilarityResults 
+            results={results}
+            hasSearchQuery={Boolean(searchQuery.trim())}
           />
         </div>
       </div>
