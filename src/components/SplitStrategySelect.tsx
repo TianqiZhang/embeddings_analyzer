@@ -17,9 +17,9 @@ export function SplitStrategySelect({ value, onChange }: SplitStrategySelectProp
         onChange={(e) => onChange(e.target.value as SplitStrategy)}
         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
       >
-        <option value="midpoint">Simple Midpoint</option>
+        <option value="midpoint">Simple Midpoint (length/2)</option>
         <option value="semantic">Semantic (Split at Newline)</option>
-        <option value="overlap">Overlapping (5% overlap)</option>
+        <option value="overlap">Semantic + 5% Overlapping</option>
       </select>
       <p className="mt-2 text-sm text-gray-500">
         {value === 'midpoint' 
