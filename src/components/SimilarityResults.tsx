@@ -1,47 +1,106 @@
 import React from 'react';
-
-interface SimilarityResults {
-  fullToAverage: number | null;
-  queryToFull: number | null;
-  queryToAverage: number | null;
-}
+import type { MultiStrategyResults } from '../utils/analysis';
 
 interface SimilarityResultsProps {
-  results: SimilarityResults;
+  resultsByStrategy: MultiStrategyResults | null;
   hasSearchQuery: boolean;
 }
 
-export function SimilarityResults({ results, hasSearchQuery }: SimilarityResultsProps) {
-  if (!results.fullToAverage) return null;
+function highlightMax(values: Array<number | undefined>): number | undefined {
+  const valid = values.filter((v) => v != null) as number[];
+  return valid.length ? Math.max(...valid) : undefined;
+}
+
+export function SimilarityResults({ resultsByStrategy, hasSearchQuery }: SimilarityResultsProps) {
+  if (!resultsByStrategy) return null;
+
+  const { midpoint, semantic, overlap } = resultsByStrategy;
+
+  const row1Max = highlightMax([midpoint.fullToAverage, semantic.fullToAverage, overlap.fullToAverage]);
+  const row2Max = hasSearchQuery
+    ? highlightMax([midpoint.queryToFull, semantic.queryToFull, overlap.queryToFull])
+    : undefined;
+  const row3Max = hasSearchQuery
+    ? highlightMax([midpoint.queryToAverage, semantic.queryToAverage, overlap.queryToAverage])
+    : undefined;
 
   return (
     <div className="mt-6 space-y-3">
-      <h3 className="font-semibold text-lg mb-4">Similarity Scores:</h3>
-      
-      <div className="grid grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg">
-        <span className="text-gray-600">Full vs Average:</span>
-        <span className="font-medium text-blue-600">{results.fullToAverage.toFixed(4)}</span>
-        
-        <span className="text-gray-600">Query vs Full:</span>
-        <span className="font-medium text-blue-600">
-          {hasSearchQuery ? results.queryToFull?.toFixed(4) : 'N/A'}
-        </span>
-        
-        <span className="text-gray-600">Query vs Average:</span>
-        <span className="font-medium text-blue-600">
-          {hasSearchQuery ? results.queryToAverage?.toFixed(4) : 'N/A'}
-        </span>
+      <h3 className="font-semibold text-lg mb-4">Similarity Scores (All Strategies):</h3>
+      <div className="overflow-auto">
+        <table className="min-w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th className="p-2 border"> </th>
+              <th className="p-2 border">Simple Midpoint</th>
+              <th className="p-2 border">Semantic (Newline)</th>
+              <th className="p-2 border">Semantic + Overlapping</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-2 border">Full vs Average</td>
+              <td className={row1Max === midpoint.fullToAverage ? 'p-2 border font-bold' : 'p-2 border'}>
+                {midpoint.fullToAverage?.toFixed(4)}
+              </td>
+              <td className={row1Max === semantic.fullToAverage ? 'p-2 border font-bold' : 'p-2 border'}>
+                {semantic.fullToAverage?.toFixed(4)}
+              </td>
+              <td className={row1Max === overlap.fullToAverage ? 'p-2 border font-bold' : 'p-2 border'}>
+                {overlap.fullToAverage?.toFixed(4)}
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2 border">Query vs Full</td>
+              <td
+                className={
+                  row2Max === midpoint.queryToFull ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? midpoint.queryToFull?.toFixed(4) : 'N/A'}
+              </td>
+              <td
+                className={
+                  row2Max === semantic.queryToFull ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? semantic.queryToFull?.toFixed(4) : 'N/A'}
+              </td>
+              <td
+                className={
+                  row2Max === overlap.queryToFull ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? overlap.queryToFull?.toFixed(4) : 'N/A'}
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2 border">Query vs Average</td>
+              <td
+                className={
+                  row3Max === midpoint.queryToAverage ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? midpoint.queryToAverage?.toFixed(4) : 'N/A'}
+              </td>
+              <td
+                className={
+                  row3Max === semantic.queryToAverage ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? semantic.queryToAverage?.toFixed(4) : 'N/A'}
+              </td>
+              <td
+                className={
+                  row3Max === overlap.queryToAverage ? 'p-2 border font-bold' : 'p-2 border'
+                }
+              >
+                {hasSearchQuery ? overlap.queryToAverage?.toFixed(4) : 'N/A'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      
-      {hasSearchQuery && (
-        <div className="mt-4 text-sm text-gray-600">
-          <p className="mb-2">Analysis:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>If Query vs Full is similar to Query vs Average, it suggests splitting the text has minimal impact on search accuracy</li>
-            <li>Large differences between these scores indicate that splitting affects search results</li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
