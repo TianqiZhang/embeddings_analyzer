@@ -1,5 +1,6 @@
 import React from 'react';
 import { SplitStrategy, splitText } from '../utils/textSplitting';
+import { SplitTextVisualization } from './SplitTextVisualization';
 
 interface TextInputProps {
   value: string;
@@ -26,15 +27,7 @@ export function TextInput({ value, onChange, onAnalyze, loading, splitStrategy }
         />
       </div>
 
-      {value && (
-        <div className="relative rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <div className="font-mono whitespace-pre-wrap text-sm">
-            <span className="text-blue-600">{part1}</span>
-            <span className="inline-block w-2 h-4 mx-0.5 bg-red-400 align-text-bottom" />
-            <span className="text-green-600">{part2}</span>
-          </div>
-        </div>
-      )}
+      {value && <SplitTextVisualization part1={part1} part2={part2} />}
 
       <div>
         <button
