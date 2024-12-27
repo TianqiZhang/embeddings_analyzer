@@ -1,7 +1,11 @@
+export type AuthType = 'apiKey' | 'token';
+
 export interface AzureConfig {
   endpoint: string;
-  apiKey: string;
   deploymentName: string;
+  authType: AuthType;
+  apiKey?: string;
+  token?: string;
 }
 
 export function getEnvConfig(): Partial<AzureConfig> {
@@ -9,5 +13,6 @@ export function getEnvConfig(): Partial<AzureConfig> {
     endpoint: import.meta.env.VITE_AZURE_OPENAI_ENDPOINT,
     apiKey: import.meta.env.VITE_AZURE_OPENAI_API_KEY,
     deploymentName: import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT_NAME,
+    authType: 'apiKey',
   };
 }

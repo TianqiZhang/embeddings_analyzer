@@ -8,7 +8,11 @@ import { useConfig } from './hooks/useConfig';
 function App() {
   const { config, updateConfig } = useConfig();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const isConfigured = config.endpoint && config.apiKey && config.deploymentName;
+  
+  const isConfigured = config.endpoint && 
+    config.deploymentName && 
+    ((config.authType === 'apiKey' && config.apiKey) || 
+     (config.authType === 'token' && config.token));
 
   return (
     <div className="min-h-screen bg-gray-50">
