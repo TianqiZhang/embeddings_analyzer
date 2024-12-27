@@ -21,20 +21,26 @@ export async function analyzeText(
   config: AzureConfig,
   updateStepStatus: (stepId: number, status: Step['status']) => void
 ): Promise<MultiStrategyResults> {
-  // Step 1: Generate full text embedding
-  updateStepStatus(1, 'active');
-  const vectorFull = await getEmbedding(text, config);
-  updateStepStatus(1, 'completed');
-
-  // Step 4: Generate search query embedding (if exists)
-  let vectorQuery: number[] | null = null;
-  if (searchQuery.trim()) {
-    updateStepStatus(4, 'active');
-    vectorQuery = await getEmbedding(searchQuery, config);
-    updateStepStatus(4, 'completed');
-  } else {
-    updateStepStatus(4, 'completed');
-  }
+  // Parallelize Step 1 and Step 4: Generate embeddings concurrently
+  const [vectorFull, vectorQuery] = await Promise.all([
+    (async () => {
+      updateStepStatus(1, 'active');
+      const vectorFull = await getEmbedding(text, config);
+      updateStepStatus(1, 'completed');
+      return vectorFull;
+    })(),
+    (async () => {
+      if (searchQuery.trim()) {
+        updateStepStatus(4, 'active');
+        const vectorQuery = await getEmbedding(searchQuery, config);
+        updateStepStatus(4, 'completed');
+        return vectorQuery;
+      } else {
+        updateStepStatus(4, 'completed');
+        return null;
+      }
+    })(),
+  ]);
 
   // New: compute results for each split strategy
   async function getStrategyResults(strategy: SplitStrategy): Promise<AnalysisResults> {
@@ -53,11 +59,13 @@ export async function analyzeText(
     };
   }
 
-  // Step 2, 3, 5 combined for all strategies
+  // Parallelize processing of all strategies
   updateStepStatus(2, 'active');
-  const midpointResults = await getStrategyResults('midpoint');
-  const semanticResults = await getStrategyResults('semantic');
-  const overlapResults = await getStrategyResults('overlap');
+  const [midpointResults, semanticResults, overlapResults] = await Promise.all([
+    getStrategyResults('midpoint'),
+    getStrategyResults('semantic'),
+    getStrategyResults('overlap'),
+  ]);
   updateStepStatus(2, 'completed');
 
   updateStepStatus(3, 'active');
