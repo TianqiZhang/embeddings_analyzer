@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Shield } from 'lucide-react';
 import { ConfigForm } from '../ConfigForm';
 import type { AzureConfig } from '../../utils/config';
 
@@ -27,6 +27,13 @@ export function ConfigDrawer({ isOpen, onClose, config, onChange }: ConfigDrawer
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-6 flex gap-3 p-4 bg-blue-50 rounded-lg text-blue-700 text-sm">
+            <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium mb-1">Secure Local Storage</p>
+              <p>Your credentials are encrypted and stored exclusively in your browser's local storage. They are never transmitted to or stored on server.</p>
+            </div>
+          </div>
           <ConfigForm config={config} onChange={onChange} />
         </div>
       </div>

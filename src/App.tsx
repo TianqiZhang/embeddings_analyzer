@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { ConfigForm } from './components/ConfigForm';
 import { TextAnalyzer } from './components/TextAnalyzer';
-import { getEnvConfig } from './utils/config';
 import type { AzureConfig } from './utils/config';
 import { Header } from './components/layout/Header';
 import { ConfigDrawer } from './components/layout/ConfigDrawer';
+import { useConfig } from './hooks/useConfig';
 
 function App() {
-  const [config, setConfig] = useState<Partial<AzureConfig>>(getEnvConfig());
+  const { config, updateConfig } = useConfig();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const isConfigured = config.endpoint && config.apiKey && config.deploymentName;
 
@@ -29,7 +28,7 @@ function App() {
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
         config={config}
-        onChange={setConfig as (config: AzureConfig) => void}
+        onChange={updateConfig}
       />
     </div>
   );

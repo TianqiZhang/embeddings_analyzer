@@ -43,8 +43,8 @@ export function MainContent({
           <div className="bg-white rounded-xl shadow-lg">
             <div className="border-b border-gray-200 p-6 pb-0">
               <div className="grid md:grid-cols-2 gap-6">
-              <SearchInput value={searchQuery} onChange={setSearchQuery} />
-              <SplitStrategySelect value={splitStrategy} onChange={setSplitStrategy} />
+                <SearchInput value={searchQuery} onChange={setSearchQuery} />
+                <SplitStrategySelect value={splitStrategy} onChange={setSplitStrategy} />
               </div>
             </div>
             <div className="p-6">
