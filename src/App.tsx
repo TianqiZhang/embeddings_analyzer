@@ -3,29 +3,34 @@ import { ConfigForm } from './components/ConfigForm';
 import { TextAnalyzer } from './components/TextAnalyzer';
 import { getEnvConfig } from './utils/config';
 import type { AzureConfig } from './utils/config';
-import { Header } from './components/Header';
+import { Header } from './components/layout/Header';
+import { ConfigDrawer } from './components/layout/ConfigDrawer';
 
 function App() {
   const [config, setConfig] = useState<Partial<AzureConfig>>(getEnvConfig());
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const isConfigured = config.endpoint && config.apiKey && config.deploymentName;
-  console.log('Config:', config);
-  console.log('isConfigured:', isConfigured);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-6">
-      <div className="flex gap-8">
-        <div className="flex-1 max-w-4xl">
-          <Header />
-          {!isConfigured &&
-            <div className="bg-yellow-50 p-3 rounded-lg text-yellow-700 mb-4">
-              Please configure your Azure OpenAI credentials to continue.
-            </div>
-          }
-          <TextAnalyzer config={config as AzureConfig} />
+    <div className="min-h-screen bg-gray-50">
+      <Header onOpenConfig={() => setIsConfigOpen(true)} />
+      
+      {!isConfigured && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-yellow-50 p-3 rounded-lg text-yellow-700">
+            Please configure your Azure OpenAI credentials to continue.
+          </div>
         </div>
-        <div className="w-80 flex-shrink-0">
-          <ConfigForm config={config} onChange={setConfig} />
-        </div>
-      </div>
+      )}
+      
+      <TextAnalyzer config={config as AzureConfig} />
+      
+      <ConfigDrawer
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        config={config}
+        onChange={setConfig as (config: AzureConfig) => void}
+      />
     </div>
   );
 }
