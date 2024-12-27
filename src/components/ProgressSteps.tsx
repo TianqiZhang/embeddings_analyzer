@@ -7,6 +7,13 @@ export type Step = {
   status: 'pending' | 'active' | 'completed';
 };
 
+export const initialSteps: Step[] = [
+  { id: 1, label: 'Generate full text embedding', status: 'pending' },
+  { id: 2, label: 'Generate partial embeddings', status: 'pending' },
+  { id: 3, label: 'Generate search query embedding', status: 'pending' },
+  { id: 4, label: 'Compute similarity scores', status: 'pending' }
+];
+
 interface ProgressStepsProps {
   steps: Step[];
 }

@@ -5,14 +5,7 @@ import type { MultiStrategyResults } from '../utils/analysis';
 import type { SplitStrategy } from '../utils/textSplitting';
 import { analyzeText } from '../utils/analysis';
 import { MainContent } from './layout/MainContent';
-
-const initialSteps: Step[] = [
-  { id: 1, label: 'Generate full text embedding', status: 'pending' },
-  { id: 2, label: 'Generate partial embeddings', status: 'pending' },
-  { id: 3, label: 'Average partial embeddings', status: 'pending' },
-  { id: 4, label: 'Generate search query embedding', status: 'pending' },
-  { id: 5, label: 'Compute similarity scores', status: 'pending' }
-];
+import { initialSteps } from './ProgressSteps';
 
 export function TextAnalyzer({ config }: { config: AzureConfig }) {
   const [text, setText] = useState('');

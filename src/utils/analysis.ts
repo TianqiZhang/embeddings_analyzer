@@ -31,12 +31,12 @@ export async function analyzeText(
     })(),
     (async () => {
       if (searchQuery.trim()) {
-        updateStepStatus(4, 'active');
+        updateStepStatus(3, 'active');
         const vectorQuery = await getEmbedding(searchQuery, config);
-        updateStepStatus(4, 'completed');
+        updateStepStatus(3, 'completed');
         return vectorQuery;
       } else {
-        updateStepStatus(4, 'completed');
+        updateStepStatus(3, 'completed');
         return null;
       }
     })(),
@@ -45,8 +45,10 @@ export async function analyzeText(
   // New: compute results for each split strategy
   async function getStrategyResults(strategy: SplitStrategy): Promise<AnalysisResults> {
     const [partA, partB] = splitText(text, strategy);
-    const vectorA = await getEmbedding(partA, config);
-    const vectorB = await getEmbedding(partB, config);
+    const [vectorA, vectorB] = await Promise.all([
+      getEmbedding(partA, config),
+      getEmbedding(partB, config),
+    ]);
     const avgEmbedding = averageVectors(vectorA, vectorB);
     return {
       fullToAverage: calculateCosineSimilarity(vectorFull, avgEmbedding),
@@ -68,13 +70,9 @@ export async function analyzeText(
   ]);
   updateStepStatus(2, 'completed');
 
-  updateStepStatus(3, 'active');
-  // (Partial averaging is already done inside getStrategyResults)
-  updateStepStatus(3, 'completed');
-
-  updateStepStatus(5, 'active');
+  updateStepStatus(4, 'active');
   // (Cosine similarity is also computed inside getStrategyResults)
-  updateStepStatus(5, 'completed');
+  updateStepStatus(4, 'completed');
 
   return {
     midpoint: midpointResults,
