@@ -2,8 +2,6 @@ import { AzureOpenAI } from "openai";
 import type { AzureConfig } from "./config";
 
 export async function getEmbedding(text: string, config: AzureConfig): Promise<number[]> {
-  console.log('config: ', config);
-
   const azureADTokenProvider = async (): Promise<string> => {
     return config.token!;
   };
