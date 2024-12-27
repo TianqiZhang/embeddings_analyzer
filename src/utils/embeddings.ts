@@ -1,29 +1,25 @@
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-import { TokenCredential } from "@azure/identity";
+import { AzureOpenAI } from "openai";
 import type { AzureConfig } from "./config";
-import type { AccessToken, GetTokenOptions } from "@azure/core-auth";
-
-class CustomTokenCredential implements TokenCredential {
-  constructor(private token: string) {}
-
-  async getToken(scopes: string | string[], options?: GetTokenOptions): Promise<AccessToken | null> {
-    return {
-      token: this.token,
-      expiresOnTimestamp: Date.now() + 60 * 60 * 1000 // 1 hour expiration
-    };
-  }
-}
 
 export async function getEmbedding(text: string, config: AzureConfig): Promise<number[]> {
   console.log('config: ', config);
-  const client = new OpenAIClient(
-    config.endpoint,
-    config.authType === 'apiKey' 
-      ? new AzureKeyCredential(config.apiKey!)
-      : new CustomTokenCredential(config.token!)
-  );
-  
-  const result = await client.getEmbeddings(config.deploymentName, [text]);
+
+  const azureADTokenProvider = async (): Promise<string> => {
+    return config.token!;
+  };
+
+  const openai = new AzureOpenAI({
+    apiKey: config.authType === 'apiKey' ? config.apiKey : undefined,
+    azureADTokenProvider : config.authType === 'token' ? azureADTokenProvider : undefined,
+    endpoint: config.endpoint,
+    deployment: config.deploymentName,
+    apiVersion: `2024-10-01-preview`
+  });
+
+  const result = await openai.embeddings.create({
+    model: config.deploymentName,
+    input: text
+  });
   return result.data[0].embedding;
 }
 
