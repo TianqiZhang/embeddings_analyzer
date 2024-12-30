@@ -9,7 +9,7 @@ interface SplitTextVisualizationProps {
 
 export function SplitTextVisualization({ part1, part2, splitStrategy }: SplitTextVisualizationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const splitPointRef = useRef<HTMLSpanElement>(null);
+  const splitPointRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (containerRef.current && splitPointRef.current) {
@@ -17,7 +17,6 @@ export function SplitTextVisualization({ part1, part2, splitStrategy }: SplitTex
       const splitPoint = splitPointRef.current;
       
       const targetScroll = splitPoint.offsetTop - container.clientHeight / 2;
-      
       container.scrollTo({
         top: targetScroll,
         behavior: 'smooth'
@@ -25,7 +24,6 @@ export function SplitTextVisualization({ part1, part2, splitStrategy }: SplitTex
     }
   }, [part1, part2]);
 
-  // Find overlapping text if strategy is 'findOverlap'
   const overlap = splitStrategy === 'overlap' ? findOverlap(part1, part2) : null;
 
   return (
@@ -44,7 +42,10 @@ export function SplitTextVisualization({ part1, part2, splitStrategy }: SplitTex
             {overlap}
           </span>
         )}
-        <span ref={splitPointRef} className="inline-block w-2 h-4 mx-0.5 bg-red-400 align-text-bottom sticky top-1/2" />
+        <div ref={splitPointRef} className="inline-block relative">
+          <div className="absolute inset-x-0 h-4 w-2 bg-red-400 mx-auto" />
+          <span className="invisible px-1">{'\u200B'}</span>
+        </div>
         <span className="text-green-600">
           {overlap 
             ? part2.slice(overlap.length)
