@@ -2,14 +2,15 @@
 
 [Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/TianqiZhang/embeddings_analyzer)
 
-This project aims to evaluate how splitting long document + averaging embedding vectors impact similarity results and search results.
+## Overview
+This repository illustrates how segmenting lengthy documents and averaging their embedding vectors can affect similarity scores and search outcomes when using Azure OpenAI models.
 
 ## Usage
 - `npm install`
 - `npm run dev`
-- Fill in your Azure OpenAI credential and deployment name (use v3 large for embedding model).
-- Fill in the Document Input textbox with a very long piece of text (<8k tokens though)
-- Fill in a sample search query
-- Hit "Go" button.
+- Provide your Azure OpenAI credentials (including the deployment name for a v3 large embedding model).
+- Enter a lengthy text snippet (under 8k tokens).
+- Enter a sample search query.
+- Click “Go.”
 
-The strategy dropdown is only for visualization. When you hit "Go" all strategies will be compared in the table.
+The strategy dropdown is for visualization only—when you select “Go,” all strategies are evaluated and displayed side by side in the results table.
