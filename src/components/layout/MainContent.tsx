@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextInput } from '../TextInput';
 import { SearchInput } from '../SearchInput';
 import { SplitStrategySelect } from '../SplitStrategySelect';
@@ -8,6 +7,10 @@ import { ProgressSteps } from '../ProgressSteps';
 import type { Step } from '../ProgressSteps';
 import type { MultiStrategyResults } from '../../utils/analysis';
 import type { SplitStrategy } from '../../utils/textSplitting';
+import { useAppContext } from '../../context/AppContext';
+import { ActionType } from '../../context/AppContext';
+import { analyzeText } from '../../utils/analysis';
+import type { AzureConfig } from '../../utils/config';
 
 interface MainContentProps {
   text: string;
@@ -20,7 +23,6 @@ interface MainContentProps {
   error: string | null;
   results: MultiStrategyResults | null;
   steps: Step[];
-  onAnalyze: () => void;
   tokenCount: number;
 }
 
@@ -35,9 +37,60 @@ export function MainContent({
   error,
   results,
   steps,
-  onAnalyze,
   tokenCount,
 }: MainContentProps) {
+  
+  const { dispatch, state } = useAppContext();
+
+  const handleAnalyze = async () => {
+    if (!state.text.trim()) return;
+    
+    try {
+      dispatch({ type: ActionType.SET_LOADING, payload: true });
+      dispatch({ type: ActionType.SET_ERROR, payload: null });
+      
+      state.steps.forEach(step => 
+        dispatch({ 
+          type: ActionType.UPDATE_STEP, 
+          payload: { stepId: step.id, status: 'pending' } 
+        })
+      );
+      
+      const updateStepStatus = (stepId: number, status: Step['status']) => {
+        dispatch({ 
+          type: ActionType.UPDATE_STEP, 
+          payload: { stepId, status } 
+        });
+      };
+      
+      const res = await analyzeText(
+        state.text, 
+        state.searchQuery, 
+        state.config as AzureConfig, 
+        updateStepStatus
+      );
+      
+      dispatch({ type: ActionType.SET_RESULTS, payload: res });
+      dispatch({ type: ActionType.SET_TOKEN_COUNT, payload: res.fullTextTokenCount });
+    } catch (err) {
+      dispatch({ 
+        type: ActionType.SET_ERROR, 
+        payload: err instanceof Error ? err.message : 'An error occurred' 
+      });
+      
+      state.steps.forEach(step => {
+        if (step.status === 'active') {
+          dispatch({ 
+            type: ActionType.UPDATE_STEP, 
+            payload: { stepId: step.id, status: 'pending' } 
+          });
+        }
+      });
+    } finally {
+      dispatch({ type: ActionType.SET_LOADING, payload: false });
+    }
+  };
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -53,7 +106,7 @@ export function MainContent({
               <TextInput
                 value={text}
                 onChange={onTextChange}
-                onAnalyze={onAnalyze}
+                onAnalyze={handleAnalyze}
                 loading={loading}
                 splitStrategy={splitStrategy}
                 fullTextTokenCount={tokenCount}

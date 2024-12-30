@@ -1,8 +1,7 @@
-import React from 'react';
-import { TextAnalyzer } from './components/TextAnalyzer';
+import { MainContent } from './components/layout/MainContent';
 import { Header } from './components/layout/Header';
 import { ConfigDrawer } from './components/layout/ConfigDrawer';
-import { AppProvider, useAppContext } from './context/AppContext';
+import { useAppContext } from './context/AppContext';
 import { ActionType } from './context/AppContext';
 
 function AppContent() {
@@ -27,7 +26,23 @@ function AppContent() {
         </div>
       )}
       
-      <TextAnalyzer />
+      <MainContent
+        text={state.text}
+        onTextChange={(text) => dispatch({ type: ActionType.SET_TEXT, payload: text })}
+        searchQuery={state.searchQuery}
+        onSearchQueryChange={(query) => 
+          dispatch({ type: ActionType.SET_SEARCH_QUERY, payload: query })
+        }
+        splitStrategy={state.splitStrategy}
+        onSplitStrategyChange={(strategy) => 
+          dispatch({ type: ActionType.SET_SPLIT_STRATEGY, payload: strategy })
+        }
+        loading={state.loading}
+        error={state.error}
+        results={state.resultsByStrategy}
+        steps={state.steps}
+        tokenCount={state.fullTextTokenCount}
+      />
       
       <ConfigDrawer
         isOpen={state.isConfigOpen}
@@ -39,12 +54,4 @@ function AppContent() {
   );
 }
 
-function App() {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
-  );
-}
-
-export default App;
+export default AppContent;
