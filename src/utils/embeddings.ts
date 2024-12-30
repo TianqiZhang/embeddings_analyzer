@@ -11,7 +11,8 @@ export async function getEmbedding(text: string, config: AzureConfig): Promise<n
     azureADTokenProvider : config.authType === 'token' ? azureADTokenProvider : undefined,
     endpoint: config.endpoint,
     deployment: config.deploymentName,
-    apiVersion: `2024-10-01-preview`
+    apiVersion: `2024-10-01-preview`,
+    dangerouslyAllowBrowser: true
   });
 
   const result = await openai.embeddings.create({
