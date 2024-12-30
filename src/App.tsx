@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TextAnalyzer } from './components/TextAnalyzer';
-import type { AzureConfig } from './utils/config';
 import { Header } from './components/layout/Header';
 import { ConfigDrawer } from './components/layout/ConfigDrawer';
-import { useConfig } from './hooks/useConfig';
+import { AppProvider, useAppContext } from './context/AppContext';
+import { ActionType } from './context/AppContext';
 
-function App() {
-  const { config, updateConfig } = useConfig();
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+function AppContent() {
+  const { state, dispatch } = useAppContext();
   
-  const isConfigured = config.endpoint && 
-    config.deploymentName && 
-    ((config.authType === 'apiKey' && config.apiKey) || 
-     (config.authType === 'token' && config.token));
+  const isConfigured = state.config.endpoint && 
+    state.config.deploymentName && 
+    ((state.config.authType === 'apiKey' && state.config.apiKey) || 
+     (state.config.authType === 'token' && state.config.token));
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onOpenConfig={() => setIsConfigOpen(true)} />
+      <Header 
+        onOpenConfig={() => dispatch({ type: ActionType.SET_CONFIG_OPEN, payload: true })} 
+      />
       
       {!isConfigured && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -26,15 +27,23 @@ function App() {
         </div>
       )}
       
-      <TextAnalyzer config={config as AzureConfig} />
+      <TextAnalyzer />
       
       <ConfigDrawer
-        isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
-        config={config}
-        onChange={updateConfig}
+        isOpen={state.isConfigOpen}
+        onClose={() => dispatch({ type: ActionType.SET_CONFIG_OPEN, payload: false })}
+        config={state.config}
+        onChange={(newConfig) => dispatch({ type: ActionType.UPDATE_CONFIG, payload: newConfig })}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   );
 }
 

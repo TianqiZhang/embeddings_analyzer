@@ -1,66 +1,80 @@
-import React, { useState } from 'react';
-import type { AzureConfig } from '../utils/config';
-import type { Step } from './ProgressSteps';
-import type { MultiStrategyResults } from '../utils/analysis';
-import type { SplitStrategy } from '../utils/textSplitting';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
+import { AzureConfig } from '../utils/config';
 import { analyzeText } from '../utils/analysis';
 import { MainContent } from './layout/MainContent';
-import { initialSteps } from './ProgressSteps';
+import { ActionType } from '../context/AppContext';
 
-export function TextAnalyzer({ config }: { config: AzureConfig }) {
-  const [text, setText] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [splitStrategy, setSplitStrategy] = useState<SplitStrategy>('midpoint');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [resultsByStrategy, setResultsByStrategy] = useState<MultiStrategyResults | null>(null);
-  const [steps, setSteps] = useState<Step[]>(initialSteps);
-  const [fullTextTokenCount, setFullTextTokenCount] = useState(0);
-
-  const updateStepStatus = (stepId: number, status: Step['status']) => {
-    setSteps(currentSteps => currentSteps.map(step => 
-      step.id === stepId ? { ...step, status } : step
-    ));
-  };
-
+export function TextAnalyzer() {
+  const { state, dispatch } = useAppContext();
+  
   const handleAnalyze = async () => {
-    if (!text.trim()) return;
+    if (!state.text.trim()) return;
     
     try {
-      setLoading(true);
-      setError(null);
+      dispatch({ type: ActionType.SET_LOADING, payload: true });
+      dispatch({ type: ActionType.SET_ERROR, payload: null });
       
-      steps.forEach(step => updateStepStatus(step.id, 'pending'));
+      state.steps.forEach(step => 
+        dispatch({ 
+          type: ActionType.UPDATE_STEP, 
+          payload: { stepId: step.id, status: 'pending' } 
+        })
+      );
       
-      const res = await analyzeText(text, searchQuery, config, updateStepStatus);
-      setResultsByStrategy(res);
-      setFullTextTokenCount(res.fullTextTokenCount);
+      const updateStepStatus = (stepId: number, status: Step['status']) => {
+        dispatch({ 
+          type: ActionType.UPDATE_STEP, 
+          payload: { stepId, status } 
+        });
+      };
+      
+      const res = await analyzeText(
+        state.text, 
+        state.searchQuery, 
+        state.config as AzureConfig, 
+        updateStepStatus
+      );
+      
+      dispatch({ type: ActionType.SET_RESULTS, payload: res });
+      dispatch({ type: ActionType.SET_TOKEN_COUNT, payload: res.fullTextTokenCount });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      steps.forEach(step => {
+      dispatch({ 
+        type: ActionType.SET_ERROR, 
+        payload: err instanceof Error ? err.message : 'An error occurred' 
+      });
+      
+      state.steps.forEach(step => {
         if (step.status === 'active') {
-          updateStepStatus(step.id, 'pending');
+          dispatch({ 
+            type: ActionType.UPDATE_STEP, 
+            payload: { stepId: step.id, status: 'pending' } 
+          });
         }
       });
     } finally {
-      setLoading(false);
+      dispatch({ type: ActionType.SET_LOADING, payload: false });
     }
   };
 
   return (
     <MainContent
-      text={text}
-      setText={setText}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      splitStrategy={splitStrategy}
-      setSplitStrategy={setSplitStrategy}
-      loading={loading}
-      error={error}
-      resultsByStrategy={resultsByStrategy}
-      steps={steps}
-      fullTextTokenCount={fullTextTokenCount}
+      text={state.text}
+      onTextChange={(text) => dispatch({ type: ActionType.SET_TEXT, payload: text })}
+      searchQuery={state.searchQuery}
+      onSearchQueryChange={(query) => 
+        dispatch({ type: ActionType.SET_SEARCH_QUERY, payload: query })
+      }
+      splitStrategy={state.splitStrategy}
+      onSplitStrategyChange={(strategy) => 
+        dispatch({ type: ActionType.SET_SPLIT_STRATEGY, payload: strategy })
+      }
       onAnalyze={handleAnalyze}
+      loading={state.loading}
+      error={state.error}
+      results={state.resultsByStrategy}
+      steps={state.steps}
+      tokenCount={state.fullTextTokenCount}
     />
   );
 }

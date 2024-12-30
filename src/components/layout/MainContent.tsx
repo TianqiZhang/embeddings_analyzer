@@ -11,32 +11,32 @@ import type { SplitStrategy } from '../../utils/textSplitting';
 
 interface MainContentProps {
   text: string;
-  setText: (text: string) => void;
+  onTextChange: (text: string) => void;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  onSearchQueryChange: (query: string) => void;
   splitStrategy: SplitStrategy;
-  setSplitStrategy: (strategy: SplitStrategy) => void;
+  onSplitStrategyChange: (strategy: SplitStrategy) => void;
   loading: boolean;
   error: string | null;
-  resultsByStrategy: MultiStrategyResults | null;
+  results: MultiStrategyResults | null;
   steps: Step[];
   onAnalyze: () => void;
-  fullTextTokenCount: number;
+  tokenCount: number;
 }
 
 export function MainContent({
   text,
-  setText,
+  onTextChange,
   searchQuery,
-  setSearchQuery,
+  onSearchQueryChange,
   splitStrategy,
-  setSplitStrategy,
+  onSplitStrategyChange,
   loading,
   error,
-  resultsByStrategy,
+  results,
   steps,
   onAnalyze,
-  fullTextTokenCount,
+  tokenCount,
 }: MainContentProps) {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -45,22 +45,22 @@ export function MainContent({
           <div className="bg-white rounded-xl shadow-lg">
             <div className="border-b border-gray-200 p-6 pb-0">
               <div className="grid md:grid-cols-2 gap-6">
-                <SearchInput value={searchQuery} onChange={setSearchQuery} />
-                <SplitStrategySelect value={splitStrategy} onChange={setSplitStrategy} />
+                <SearchInput value={searchQuery} onChange={onSearchQueryChange} />
+                <SplitStrategySelect value={splitStrategy} onChange={onSplitStrategyChange} />
               </div>
             </div>
             <div className="p-6">
               <TextInput
                 value={text}
-                onChange={setText}
+                onChange={onTextChange}
                 onAnalyze={onAnalyze}
                 loading={loading}
                 splitStrategy={splitStrategy}
-                fullTextTokenCount={fullTextTokenCount}
+                fullTextTokenCount={tokenCount}
               />
               <ErrorDisplay error={error} />
               <SimilarityResults
-                resultsByStrategy={resultsByStrategy}
+                resultsByStrategy={results}
                 hasSearchQuery={Boolean(searchQuery.trim())}
               />
             </div>
