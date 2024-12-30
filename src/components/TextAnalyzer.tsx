@@ -15,6 +15,7 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
   const [error, setError] = useState<string | null>(null);
   const [resultsByStrategy, setResultsByStrategy] = useState<MultiStrategyResults | null>(null);
   const [steps, setSteps] = useState<Step[]>(initialSteps);
+  const [fullTextTokenCount, setFullTextTokenCount] = useState(0);
 
   const updateStepStatus = (stepId: number, status: Step['status']) => {
     setSteps(currentSteps => currentSteps.map(step => 
@@ -33,6 +34,7 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
       
       const res = await analyzeText(text, searchQuery, config, updateStepStatus);
       setResultsByStrategy(res);
+      setFullTextTokenCount(res.fullTextTokenCount);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       steps.forEach(step => {
@@ -57,6 +59,7 @@ export function TextAnalyzer({ config }: { config: AzureConfig }) {
       error={error}
       resultsByStrategy={resultsByStrategy}
       steps={steps}
+      fullTextTokenCount={fullTextTokenCount}
       onAnalyze={handleAnalyze}
     />
   );

@@ -8,16 +8,17 @@ interface TextInputProps {
   onAnalyze: () => void;
   loading: boolean;
   splitStrategy: SplitStrategy;
+  fullTextTokenCount?: number;
 }
 
-export function TextInput({ value, onChange, onAnalyze, loading, splitStrategy }: TextInputProps) {
+export function TextInput({ value, onChange, onAnalyze, loading, splitStrategy, fullTextTokenCount }: TextInputProps) {
   const [part1, part2] = value ? splitText(value, splitStrategy) : ['', ''];
 
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document Input <span className="text-red-500">*</span>
+          Document Input {fullTextTokenCount != null && `(${fullTextTokenCount} tokens)`}
         </label>
         <textarea
           className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"

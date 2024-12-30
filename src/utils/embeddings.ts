@@ -1,7 +1,7 @@
 import { AzureOpenAI } from "openai";
 import type { AzureConfig } from "./config";
 
-export async function getEmbedding(text: string, config: AzureConfig): Promise<number[]> {
+export async function getEmbedding(text: string, config: AzureConfig): Promise<{ embedding: number[]; tokenCount: number }> {
   const azureADTokenProvider = async (): Promise<string> => {
     return config.token!;
   };
@@ -19,7 +19,10 @@ export async function getEmbedding(text: string, config: AzureConfig): Promise<n
     model: config.deploymentName,
     input: text
   });
-  return result.data[0].embedding;
+  return {
+    embedding: result.data[0].embedding,
+    tokenCount: result.usage?.total_tokens || 0
+  };
 }
 
 export function calculateCosineSimilarity(vec1: number[], vec2: number[]): number {

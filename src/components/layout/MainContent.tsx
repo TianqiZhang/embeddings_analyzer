@@ -21,6 +21,7 @@ interface MainContentProps {
   resultsByStrategy: MultiStrategyResults | null;
   steps: Step[];
   onAnalyze: () => void;
+  fullTextTokenCount: number;
 }
 
 export function MainContent({
@@ -35,6 +36,7 @@ export function MainContent({
   resultsByStrategy,
   steps,
   onAnalyze,
+  fullTextTokenCount,
 }: MainContentProps) {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -54,6 +56,7 @@ export function MainContent({
                 onAnalyze={onAnalyze}
                 loading={loading}
                 splitStrategy={splitStrategy}
+                fullTextTokenCount={fullTextTokenCount}
               />
               <ErrorDisplay error={error} />
               <SimilarityResults

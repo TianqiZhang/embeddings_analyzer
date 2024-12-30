@@ -20,14 +20,13 @@ export async function analyzeText(
   searchQuery: string,
   config: AzureConfig,
   updateStepStatus: (stepId: number, status: Step['status']) => void
-): Promise<MultiStrategyResults> {
-  // Parallelize Step 1 and Step 4: Generate embeddings concurrently
-  const [vectorFull, vectorQuery] = await Promise.all([
+): Promise<MultiStrategyResults & { fullTextTokenCount: number }> {
+  const [vectorFullData, vectorQueryData] = await Promise.all([
     (async () => {
       updateStepStatus(1, 'active');
-      const vectorFull = await getEmbedding(text, config);
+      const data = await getEmbedding(text, config);
       updateStepStatus(1, 'completed');
-      return vectorFull;
+      return data;
     })(),
     (async () => {
       if (searchQuery.trim()) {
@@ -42,26 +41,30 @@ export async function analyzeText(
     })(),
   ]);
 
-  // New: compute results for each split strategy
+  const vectorFull = vectorFullData.embedding;
+  const fullTextTokenCount = vectorFullData.tokenCount;
+  const vectorQuery = vectorQueryData ? vectorQueryData.embedding : null;
+
   async function getStrategyResults(strategy: SplitStrategy): Promise<AnalysisResults> {
     const [partA, partB] = splitText(text, strategy);
-    const [vectorA, vectorB] = await Promise.all([
+    const [aData, bData] = await Promise.all([
       getEmbedding(partA, config),
-      getEmbedding(partB, config),
+      getEmbedding(partB, config)
     ]);
-    const avgEmbedding = averageVectors(vectorA, vectorB);
+    const vectorA = aData.embedding;
+    const vectorB = bData.embedding;
+    const avg = averageVectors(vectorA, vectorB);
     return {
-      fullToAverage: calculateCosineSimilarity(vectorFull, avgEmbedding),
+      fullToAverage: calculateCosineSimilarity(vectorFull, avg),
       queryToFull: vectorQuery
         ? calculateCosineSimilarity(vectorQuery, vectorFull)
         : undefined,
       queryToAverage: vectorQuery
-        ? calculateCosineSimilarity(vectorQuery, avgEmbedding)
+        ? calculateCosineSimilarity(vectorQuery, avg)
         : undefined,
     };
   }
 
-  // Parallelize processing of all strategies
   updateStepStatus(2, 'active');
   const [midpointResults, semanticResults, overlapResults] = await Promise.all([
     getStrategyResults('midpoint'),
@@ -71,12 +74,12 @@ export async function analyzeText(
   updateStepStatus(2, 'completed');
 
   updateStepStatus(4, 'active');
-  // (Cosine similarity is also computed inside getStrategyResults)
   updateStepStatus(4, 'completed');
 
   return {
     midpoint: midpointResults,
     semantic: semanticResults,
-    overlap: overlapResults
+    overlap: overlapResults,
+    fullTextTokenCount
   };
 }
