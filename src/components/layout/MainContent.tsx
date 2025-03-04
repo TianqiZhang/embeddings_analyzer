@@ -11,6 +11,7 @@ import { useAppContext } from '../../context/AppContext';
 import { ActionType } from '../../context/AppContext';
 import { analyzeText } from '../../utils/analysis';
 import type { AzureConfig } from '../../utils/config';
+import { Trash2 } from 'lucide-react';
 
 interface MainContentProps {
   text: string;
@@ -91,12 +92,27 @@ export function MainContent({
     }
   };
 
+  const handleClearData = () => {
+    dispatch({ type: ActionType.CLEAR_SPLIT_ANALYSIS });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
           <div className="bg-white rounded-xl shadow-lg">
-            <div className="border-b border-gray-200 p-6 pb-0">
+            <div className="border-b border-gray-200 p-6 pb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">Split Text Analysis</h2>
+                <button
+                  onClick={handleClearData}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 transition-colors"
+                  title="Clear all data"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear</span>
+                </button>
+              </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <SearchInput value={searchQuery} onChange={onSearchQueryChange} />
                 <SplitStrategySelect value={splitStrategy} onChange={onSplitStrategyChange} />

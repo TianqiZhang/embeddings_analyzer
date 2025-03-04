@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextSampleInput, TextSample } from './TextSampleInput';
 import { SimilarityMatrix } from './SimilarityMatrix';
 import { ErrorDisplay } from '../ErrorDisplay';
@@ -7,10 +7,10 @@ import { useAppContext } from '../../context/AppContext';
 import { ActionType } from '../../context/AppContext';
 import { generateSimilarityMatrix } from '../../utils/similarityMatrix';
 import type { AzureConfig } from '../../utils/config';
+import { Trash2 } from 'lucide-react';
 
 export function SimilarityMatrixContent() {
   const { state, dispatch } = useAppContext();
-  const [samples, setSamples] = useState<TextSample[]>([]);
   const [similarityScores, setSimilarityScores] = useState<number[][]>([]);
   const [matrixSteps, setMatrixSteps] = useState<Step[]>([
     { id: 1, label: 'Generate embeddings for samples', status: 'pending' },
@@ -19,16 +19,32 @@ export function SimilarityMatrixContent() {
   const [matrixError, setMatrixError] = useState<string | null>(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
 
+  // Use samples from global state
+  const samples = state.similarityMatrixSamples;
+
   const handleAddSample = (text: string) => {
-    setSamples([...samples, { id: Date.now().toString(), text }]);
+    const newSample = { id: Date.now().toString(), text };
+    dispatch({ 
+      type: ActionType.SET_SIMILARITY_MATRIX_SAMPLES, 
+      payload: [...samples, newSample] 
+    });
   };
 
   const handleRemoveSample = (id: string) => {
-    setSamples(samples.filter(sample => sample.id !== id));
+    dispatch({ 
+      type: ActionType.SET_SIMILARITY_MATRIX_SAMPLES, 
+      payload: samples.filter(sample => sample.id !== id) 
+    });
+    
     // Clear results if we remove samples
     if (similarityScores.length > 0) {
       setSimilarityScores([]);
     }
+  };
+
+  const handleClearData = () => {
+    dispatch({ type: ActionType.CLEAR_SIMILARITY_MATRIX });
+    setSimilarityScores([]);
   };
 
   const handleGenerateMatrix = async () => {
@@ -77,6 +93,18 @@ export function SimilarityMatrixContent() {
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3">
         <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Similarity Matrix</h2>
+            <button
+              onClick={handleClearData}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 transition-colors"
+              title="Clear all data"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Clear</span>
+            </button>
+          </div>
+          
           <TextSampleInput 
             samples={samples} 
             onAddSample={handleAddSample} 

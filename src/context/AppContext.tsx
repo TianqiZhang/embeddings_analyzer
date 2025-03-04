@@ -1,12 +1,22 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import type { Step } from '../components/ProgressSteps';
 import type { MultiStrategyResults } from '../utils/analysis';
 import type { SplitStrategy } from '../utils/textSplitting';
 import type { AzureConfig } from '../utils/config';
 import { initialSteps } from '../components/ProgressSteps';
-import { loadConfig, saveConfig } from '../utils/secureStorage';
+import { 
+  loadConfig, 
+  saveConfig, 
+  loadSplitAnalysisData, 
+  saveSplitAnalysisData,
+  clearSplitAnalysisData,
+  loadSimilarityMatrixData,
+  saveSimilarityMatrixData,
+  clearSimilarityMatrixData
+} from '../utils/secureStorage';
 import { getEnvConfig } from '../utils/config';
 import type { TabId } from '../components/layout/TabNavigation';
+import type { TextSample } from '../components/similarity-matrix/TextSampleInput';
 
 // Define the state structure
 interface AppState {
@@ -21,6 +31,7 @@ interface AppState {
   config: Partial<AzureConfig>;
   isConfigOpen: boolean;
   activeTab: TabId;
+  similarityMatrixSamples: TextSample[];
 }
 
 // Define action type constants
@@ -36,7 +47,10 @@ export const ActionType = {
   UPDATE_CONFIG: 'UPDATE_CONFIG',
   SET_CONFIG_OPEN: 'SET_CONFIG_OPEN',
   RESET_ANALYSIS: 'RESET_ANALYSIS',
-  SET_ACTIVE_TAB: 'SET_ACTIVE_TAB'
+  SET_ACTIVE_TAB: 'SET_ACTIVE_TAB',
+  SET_SIMILARITY_MATRIX_SAMPLES: 'SET_SIMILARITY_MATRIX_SAMPLES',
+  CLEAR_SPLIT_ANALYSIS: 'CLEAR_SPLIT_ANALYSIS',
+  CLEAR_SIMILARITY_MATRIX: 'CLEAR_SIMILARITY_MATRIX'
 } as const;
 
 // Define action types
@@ -52,13 +66,20 @@ type AppAction =
   | { type: typeof ActionType.UPDATE_CONFIG; payload: AzureConfig }
   | { type: typeof ActionType.SET_CONFIG_OPEN; payload: boolean }
   | { type: typeof ActionType.RESET_ANALYSIS }
-  | { type: typeof ActionType.SET_ACTIVE_TAB; payload: TabId };
+  | { type: typeof ActionType.SET_ACTIVE_TAB; payload: TabId }
+  | { type: typeof ActionType.SET_SIMILARITY_MATRIX_SAMPLES; payload: TextSample[] }
+  | { type: typeof ActionType.CLEAR_SPLIT_ANALYSIS }
+  | { type: typeof ActionType.CLEAR_SIMILARITY_MATRIX };
+
+// Load saved data
+const savedSplitAnalysisData = loadSplitAnalysisData();
+const savedSimilarityMatrixData = loadSimilarityMatrixData();
 
 // Initial state
 const initialState: AppState = {
-  text: '',
-  searchQuery: '',
-  splitStrategy: 'midpoint',
+  text: savedSplitAnalysisData?.text || '',
+  searchQuery: savedSplitAnalysisData?.searchQuery || '',
+  splitStrategy: (savedSplitAnalysisData?.splitStrategy as SplitStrategy) || 'midpoint',
   loading: false,
   error: null,
   resultsByStrategy: null,
@@ -66,7 +87,8 @@ const initialState: AppState = {
   fullTextTokenCount: 0,
   config: loadConfig() || getEnvConfig(), 
   isConfigOpen: false,
-  activeTab: 'split-analysis'
+  activeTab: 'split-analysis',
+  similarityMatrixSamples: savedSimilarityMatrixData?.samples || [],
 };
 
 // Create the context
@@ -117,6 +139,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     case ActionType.SET_ACTIVE_TAB:
       return { ...state, activeTab: action.payload };
+    case ActionType.SET_SIMILARITY_MATRIX_SAMPLES:
+      return { ...state, similarityMatrixSamples: action.payload };
+    case ActionType.CLEAR_SPLIT_ANALYSIS:
+      clearSplitAnalysisData();
+      return {
+        ...state,
+        text: '',
+        searchQuery: '',
+        splitStrategy: 'midpoint',
+        resultsByStrategy: null,
+        error: null,
+        fullTextTokenCount: 0,
+        steps: initialSteps,
+      };
+    case ActionType.CLEAR_SIMILARITY_MATRIX:
+      clearSimilarityMatrixData();
+      return {
+        ...state,
+        similarityMatrixSamples: [],
+      };
     default:
       return state;
   }
@@ -125,6 +167,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
 // Provider component
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Save Split Analysis data when it changes
+  useEffect(() => {
+    saveSplitAnalysisData({
+      text: state.text,
+      searchQuery: state.searchQuery,
+      splitStrategy: state.splitStrategy,
+    });
+  }, [state.text, state.searchQuery, state.splitStrategy]);
+
+  // Save Similarity Matrix data when it changes
+  useEffect(() => {
+    saveSimilarityMatrixData({
+      samples: state.similarityMatrixSamples,
+    });
+  }, [state.similarityMatrixSamples]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
