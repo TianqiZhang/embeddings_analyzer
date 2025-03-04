@@ -1,6 +1,8 @@
 import { MainContent } from './components/layout/MainContent';
 import { Header } from './components/layout/Header';
 import { ConfigDrawer } from './components/layout/ConfigDrawer';
+import { TabNavigation } from './components/layout/TabNavigation';
+import { SimilarityMatrixContent } from './components/similarity-matrix/SimilarityMatrixContent';
 import { useAppContext } from './context/AppContext';
 import { ActionType } from './context/AppContext';
 
@@ -26,23 +28,36 @@ function AppContent() {
         </div>
       )}
       
-      <MainContent
-        text={state.text}
-        onTextChange={(text) => dispatch({ type: ActionType.SET_TEXT, payload: text })}
-        searchQuery={state.searchQuery}
-        onSearchQueryChange={(query) => 
-          dispatch({ type: ActionType.SET_SEARCH_QUERY, payload: query })
-        }
-        splitStrategy={state.splitStrategy}
-        onSplitStrategyChange={(strategy) => 
-          dispatch({ type: ActionType.SET_SPLIT_STRATEGY, payload: strategy })
-        }
-        loading={state.loading}
-        error={state.error}
-        results={state.resultsByStrategy}
-        steps={state.steps}
-        tokenCount={state.fullTextTokenCount}
+      <TabNavigation 
+        activeTab={state.activeTab}
+        onTabChange={(tab) => dispatch({ type: ActionType.SET_ACTIVE_TAB, payload: tab })}
       />
+      
+      <div className="py-8">
+        {state.activeTab === 'split-analysis' ? (
+          <MainContent
+            text={state.text}
+            onTextChange={(text) => dispatch({ type: ActionType.SET_TEXT, payload: text })}
+            searchQuery={state.searchQuery}
+            onSearchQueryChange={(query) => 
+              dispatch({ type: ActionType.SET_SEARCH_QUERY, payload: query })
+            }
+            splitStrategy={state.splitStrategy}
+            onSplitStrategyChange={(strategy) => 
+              dispatch({ type: ActionType.SET_SPLIT_STRATEGY, payload: strategy })
+            }
+            loading={state.loading}
+            error={state.error}
+            results={state.resultsByStrategy}
+            steps={state.steps}
+            tokenCount={state.fullTextTokenCount}
+          />
+        ) : (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SimilarityMatrixContent />
+          </div>
+        )}
+      </div>
       
       <ConfigDrawer
         isOpen={state.isConfigOpen}

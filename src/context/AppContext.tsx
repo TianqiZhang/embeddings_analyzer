@@ -6,6 +6,7 @@ import type { AzureConfig } from '../utils/config';
 import { initialSteps } from '../components/ProgressSteps';
 import { loadConfig, saveConfig } from '../utils/secureStorage';
 import { getEnvConfig } from '../utils/config';
+import type { TabId } from '../components/layout/TabNavigation';
 
 // Define the state structure
 interface AppState {
@@ -19,6 +20,7 @@ interface AppState {
   fullTextTokenCount: number;
   config: Partial<AzureConfig>;
   isConfigOpen: boolean;
+  activeTab: TabId;
 }
 
 // Define action type constants
@@ -33,7 +35,8 @@ export const ActionType = {
   SET_TOKEN_COUNT: 'SET_TOKEN_COUNT',
   UPDATE_CONFIG: 'UPDATE_CONFIG',
   SET_CONFIG_OPEN: 'SET_CONFIG_OPEN',
-  RESET_ANALYSIS: 'RESET_ANALYSIS'
+  RESET_ANALYSIS: 'RESET_ANALYSIS',
+  SET_ACTIVE_TAB: 'SET_ACTIVE_TAB'
 } as const;
 
 // Define action types
@@ -48,7 +51,8 @@ type AppAction =
   | { type: typeof ActionType.SET_TOKEN_COUNT; payload: number }
   | { type: typeof ActionType.UPDATE_CONFIG; payload: AzureConfig }
   | { type: typeof ActionType.SET_CONFIG_OPEN; payload: boolean }
-  | { type: typeof ActionType.RESET_ANALYSIS };
+  | { type: typeof ActionType.RESET_ANALYSIS }
+  | { type: typeof ActionType.SET_ACTIVE_TAB; payload: TabId };
 
 // Initial state
 const initialState: AppState = {
@@ -62,6 +66,7 @@ const initialState: AppState = {
   fullTextTokenCount: 0,
   config: loadConfig() || getEnvConfig(), 
   isConfigOpen: false,
+  activeTab: 'split-analysis'
 };
 
 // Create the context
@@ -110,6 +115,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         steps: initialSteps,
         fullTextTokenCount: 0,
       };
+    case ActionType.SET_ACTIVE_TAB:
+      return { ...state, activeTab: action.payload };
     default:
       return state;
   }

@@ -12,7 +12,7 @@ export function Header({ onOpenConfig }: HeaderProps) {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Brain className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Text Embedding Analyzer</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Embedding Analysis Tools</h1>
           </div>
           <button
             onClick={onOpenConfig}
